@@ -1,12 +1,16 @@
 #include "../include/solid.h"
 #include "../include/wire.h"
 
-#include <GL/glut.h>
 #include <stdbool.h>
+#include <GL/glut.h>
 
-bool developer_mode = false;
-int posX = 0, posY = 0;
+bool wire_mode = false;
+GLint posX = 0.0, posY = 0.0;
 GLfloat fAspect;
+
+void keyboardFunc(unsigned char key, int x, int y) {
+    if (key == 27) { exit(EXIT_SUCCESS); }
+}
 
 void specialFunc(int key, int x, int y) {
     switch (key) {
@@ -24,7 +28,7 @@ void specialFunc(int key, int x, int y) {
             break;
 
         case GLUT_KEY_F2:
-            developer_mode = developer_mode ? false : true;
+            wire_mode = wire_mode ? false : true;
             break;
 
         default:
@@ -33,41 +37,35 @@ void specialFunc(int key, int x, int y) {
     glutPostRedisplay();
 }
 
-void keyboardFunc(unsigned char key, int x, int y) {
-    if (key == 27) {
-        exit(EXIT_SUCCESS);
-    }
-}
-
 void draw() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glMatrixMode(GL_MODELVIEW);
 
     glPushMatrix();
     glRotatef(posX %= 360, 1.0, 0.0, 0.0);
     glRotatef(posY %= 360, 0.0, 1.0, 0.0);
 
-    if (developer_mode) {
-        draw_wire_sun();
-        draw_wire_house_walls();
-        draw_wire_roof();
-        draw_wire_door();
-        draw_wire_window(90, -1, 0, 1);
-        draw_wire_window(90, -1, 0, -1);
-        draw_wire_window(90, 1, 0, 1);
-        draw_wire_window(90, 1, 0, -1);
-        draw_wire_floor();
+    if (!wire_mode) {
+        drawSolidSun();
+        drawSolidWalls();
+        drawSolidRoof();
+        drawSolidWindow(-90, -100, 0, -100);
+        drawSolidWindow(-90, -100, 0, 100);
+        drawSolidWindow(90, 100, 0, -100);
+        drawSolidWindow(90, 100, 0, 100);
+        drawSolidDoor();
+        drawSolidFloor();
     } else {
-        draw_solid_sun();
-        draw_solid_house_walls();
-        draw_solid_roof();
-        draw_solid_door();
-        draw_solid_window(90, -1, 0, 1);
-        draw_solid_window(90, -1, 0, -1);
-        draw_solid_window(90, 1, 0, 1);
-        draw_solid_window(90, 1, 0, -1);
-        draw_solid_floor();
+        drawWireSun();
+        drawWireWalls();
+        drawWireRoof();
+        drawWireWindow(-90, -100, 0, -100);
+        drawWireWindow(-90, -100, 0, 100);
+        drawWireWindow(90, 100, 0, -100);
+        drawWireWindow(90, 100, 0, 100);
+        drawWireDoor();
+        drawWireFloor();
     }
-
     glPopMatrix();
 
     glFlush();
@@ -77,18 +75,16 @@ void view_parameters() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    gluPerspective(45, fAspect, 4, 20);
+    gluPerspective(45, fAspect, 1, 3000);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    gluLookAt(0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(0.0, 0.0, 1000.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 }
 
 void reshapeFunc(GLsizei w, GLsizei h) {
-    if (h == 0) {
-        h = 1;
-    }
+    if (h == 0) { h = 1; }
 
     glViewport(0, 0, w, h);
 
@@ -104,9 +100,10 @@ void init() {
     GLfloat specularity[4] = {0.1, 0.1, 0.1, 1.0};
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
     glShadeModel(GL_SMOOTH);
 
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularity);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, specularity);
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light);
 
@@ -118,19 +115,20 @@ void init() {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE_ARB);
 }
 
 
 int main(int argc, char *argv[]) {
     glutInit(&argc, argv);
-    glutInitWindowSize(800, 800);
+    glutInitWindowSize(1000, 1000);
     glutInitWindowPosition(0, 0);
-    glutInitDisplayMode(GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_DEPTH | GLUT_MULTISAMPLE);
     glutCreateWindow("Casa 3D");
     glutDisplayFunc(draw);
+    glutKeyboardFunc(keyboardFunc);
     glutReshapeFunc(reshapeFunc);
     glutSpecialFunc(specialFunc);
-    glutKeyboardFunc(keyboardFunc);
     init();
     glutMainLoop();
 }

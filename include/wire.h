@@ -1,11 +1,13 @@
 #ifndef CASA3D_WIRE_H
 #define CASA3D_WIRE_H
 
-void draw_wire_sun();
-void draw_wire_house_walls();
-void draw_wire_roof();
-void draw_wire_door();
-void draw_wire_window(double angle, double x, double y, double z);
-void draw_wire_floor();
+#include <GL/gl.h>
+
+void drawWireSun();
+void drawWireWalls();
+void drawWireRoof();
+void drawWireWindow(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
+void drawWireDoor();
+void drawWireFloor();
 
 #endif //CASA3D_WIRE_H
